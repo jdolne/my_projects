@@ -6,4 +6,5 @@ WITH dog_cte AS (
 
 SELECT *
 FROM DOG_CTE
+where dog_cte.age > 5
 
