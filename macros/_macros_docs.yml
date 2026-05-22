@@ -1,0 +1,18 @@
+macros:
+    - name: cents_to_dollars
+      description: |
+        This macro converts an amount in cents to dollars. 
+        It takes two parameters: `amount`, which is the value in cents, and `decimals`, 
+        which specifies the number of decimal places to round to (default is 2). 
+        The macro uses the `round` function to perform the conversion and rounding.
+      arguments:
+        - name: amount
+          description: The amount in cents that you want to convert to dollars.
+          type: number
+        - name: decimals
+          description: The number of decimal places to round the result to (default is 2).
+          type: number
+      example: |
+        {{ cents_to_dollars(12345) }} -- This will return 123.45
+        {{ cents_to_dollars(12345, 3) }} -- This will return 123.450
+    
