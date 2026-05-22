@@ -24,4 +24,4 @@ To see how to work with dictionaries go to dictionary.sql
 You will notice that there is a lot of white space imbetween the outputs for For Loops. This is because jinja is still reading th another lines. To remove the other lines entirely, you need to add minus signs inside both sides of each line where you want to remoe the white space like {%-  -%}. There is an example line in loops_statements_lists.sql
 
 ## Applying Jinja in model
-it is possible to turn case whens into jinja that is more efficient and stores possible future values. The instructions used a source table I do not have so I need to go back and add those tables.
+It is possible to turn case whens into jinja that is more efficient and stores possible future values. Look at the pivoting_table model to see how to iterate dynamically through an item to create a pivoted table.
