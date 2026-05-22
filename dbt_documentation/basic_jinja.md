@@ -9,7 +9,7 @@ Jinja is just a templating engine. It is similar to python. The most basic ways 
 ## Syntax
 {% %} - this indicates some operation is happening inside the jinja context. Invisible to the end user after the code is compiled. You can set a variable here.
 
-{{ }} - indicate we are pulling something out of the jinja context and printing it in order to produce some type of written material.
+{{ }} - indicate we are pulling something out of the jinja context and printing it in order to produce some type of written material. Is used for expressions. These will print text to the rendered file. In most cases in dbt, this will compile your Jinja to pure SQL.
 
 {# #} - to turn anything into a comment this is what I do in jinja. It will not be evaluated when you get to target/compiled
 
