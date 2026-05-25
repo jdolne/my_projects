@@ -1,3 +1,14 @@
 packages:
   - package: dbt-labs/dbt_utils
     version: 1.3.3
+
+  - package: brooklyn-data/dbt_artifacts #This package gives us information on our models, snapshots, etc. I think it is where I can find recency info
+    version: 2.10.1
+
+  - package: dbt-labs/codegen
+    version: 0.14.1 # very helpful for generating sql code for the staging layer.
+
+  - package: bqbooster/dbt_bigquery_monitoring #This is a set of models! Very interesting. I should research this more when you are ready to actually analyze costs.
+    version: 0.26.0
+
+  #In the DBt course, it talks about how I can connect packages on the repository level or on a subproject level. https://learn.getdbt.com/learn/course/jinja-macros-and-packages-vs-code/packages/installing-packages?page=3

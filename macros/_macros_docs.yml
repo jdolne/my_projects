@@ -12,7 +12,5 @@ macros:
         - name: decimals
           description: The number of decimal places to round the result to (default is 2).
           type: number
-      example: |
-        {{ cents_to_dollars(12345) }} -- This will return 123.45
-        {{ cents_to_dollars(12345, 3) }} -- This will return 123.450
+
     

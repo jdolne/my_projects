@@ -10,6 +10,6 @@ To create a macro you need:
 
 {%- macro cents_to_dollars(amount, decimals = 2) -%}
 
-round({{amount}} * 1.0 / 100,{{decimals}} )-- I was surprised that I still need to put squiggly brackets there.
+ round({{amount}} * 1.0 / 100, {{decimals}} )  {# I was surprised that I still need to put squiggly brackets there. #}
 
 {%- endmacro -%}

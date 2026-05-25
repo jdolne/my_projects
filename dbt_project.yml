@@ -42,3 +42,5 @@ models:
     # Applies to all files under models/example/
     example:
       +materialized: table
+    dbt_bigquery_monitoring:
+      +schema: "dbt_bigquery_monitoring"
