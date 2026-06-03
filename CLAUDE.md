@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **dbt (data build tool)** project for dbt development. The project uses BigQuery as the data warehouse and dbt version 1.10.20. It demonstrates various dbt concepts including models, macros, packages, and custom transformations.
+This is a **dbt (data build tool)** project for dbt development. The project uses BigQuery as the data warehouse and dbt version 1.11.9. It demonstrates various dbt concepts including models, macros, packages, and custom transformations.
 
 ## Project Structure
 
@@ -43,65 +43,21 @@ The project uses a Python virtual environment (`dbt-env/`) with dbt installed. T
 
 If dbt commands fail, ensure the virtual environment is activated or use the full path to the dbt binary.
 
-## Common dbt Commands
-This is not a comprehensive list.
+## dbt Development
 
-**Run and test:**
+For creating, editing, and validating dbt artifacts (models, macros, tests, sources, `schema.yml`), use the **develop-dbt** skill in `.claude/skills/develop-dbt/`. It owns this project's authoring conventions and a local validation workflow (`parse`, `validate`, `compile`, `list`) that runs without touching BigQuery.
+
+Commands that run against the warehouse (not covered by the skill):
 ```bash
-dbt run                          # Execute all models
-dbt run --select model_name      # Execute a specific model
-dbt test                         # Run all tests
-dbt test --select source:source_name  # Test specific sources
+dbt run                          # Build all models
+dbt run --select model_name      # Build a specific model
+dbt test                         # Run tests
 dbt build                        # Run models + tests in DAG order
-```
-
-**Development & debugging:**
-```bash
-dbt compile                      # Parse and compile models (useful for syntax checking)
-dbt parse                        # Parse YAML files
-dbt debug                        # Check database connection and dbt configuration
-dbt freshness                    # Check data source freshness
-```
-
-**Cleaning & setup:**
-```bash
-dbt clean                        # Remove target/ and dbt_packages/
 dbt seed                         # Load CSV seed files
+dbt docs generate                # Build documentation (then `dbt docs serve`)
+dbt debug                        # Check the warehouse connection and config
 ```
-
-**Documentation:**
-```bash
-dbt docs generate               # Generate documentation
-dbt docs serve                  # Serve documentation at http://localhost:8000
-```
-
-## Writing Models
-
-Models are SQL files in `models/` that transform raw data. Key patterns:
-- Models are materialized based on config in `dbt_project.yml` or `{{ config(...) }}` macro
-- Example models use Jinja2 for control flow, loops, and templating
-- Use source definitions in `schema.yml` to reference raw data
-- Add comprehensive tests and documentation in the corresponding `schema.yml` file
-- Model columns should all be listed within the `schema.yml` file
-
-## Writing Tests
-
-Tests should be defined in `models/[subdirectory]/schema.yml` under the `models:` or `sources:` keys:
-```yaml
-models:
-  - name: my_model
-    columns:
-      - name: id
-        tests:
-          - unique
-          - not_null
-```
-
-Reference packages to create tests or create custom test SQL files in `tests/` directory.
-
-## Custom Macros
-
-Add new macros to the `macros/` directory with corresponding documentation in `_macros_docs.yml`. If a task is likely to be repeated, in another model, create a macro.
+Run dbt from the `dbt-env/` virtualenv (see Environment Setup).
 
 ## Installed Packages
 
@@ -115,7 +71,6 @@ To use macros from packages, call them as `{{ package_name.macro_name(...) }}`.
 ## Key Notes
 
 - The project is a learning repository focused on demonstrating skill; some directories (like `tests/`) are mostly empty
-- dbt-core version 1.10.20 is installed but future versions are available
-- Models should be configured as views.
+- dbt-core version 1.11.9 is installed but future versions are available (1.11.11 is the latest)
 - BigQuery is the target database (referenced in packages)
-- Changes to `schema.yml` files require running `dbt parse` to validate YAML structure
+- dbt authoring conventions and local validation live in the **develop-dbt** skill (`.claude/skills/develop-dbt/`)

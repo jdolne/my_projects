@@ -1,191 +1,46 @@
 ---
 name: develop-dbt
-description: Validate, edit, and develop dbt models, macros, tests, and YAML artifacts
-tags: [dbt, development, validation, sql, yaml]
+description: Create, edit, and validate dbt models, macros, tests, analyses, sources, and schema.yml files in this BigQuery dbt project. Use whenever writing or changing a dbt artifact, or to check that dbt YAML/SQL/Jinja is valid without running models against the warehouse.
 ---
 
 # Develop dbt Artifacts
 
-This skill provides a development workflow for creating and editing dbt models, macros, tests, and documentation. It validates YAML structure and SQL syntax without requiring database credentials, making it ideal for local development.
+Workflow for authoring and validating dbt artifacts in this project. Validation runs through real `dbt parse` / `dbt compile` (via the `dbt-env/` virtualenv), so it reports dbt's actual errors — not hand-rolled approximations.
 
-## Overview
+## The driver
 
-The driver at `.claude/skills/develop-dbt/driver.mjs` is a Node.js CLI that wraps dbt commands and provides syntax validation for dbt artifacts. Use it to:
+`.claude/skills/develop-dbt/driver.mjs` wraps the dbt commands you need while developing. It finds the project root automatically (so it works from any subdirectory) and runs dbt from `dbt-env/`. Every command prints the underlying `dbt` invocation, streams dbt's real output (including errors), and exits non-zero on failure.
 
-- **Validate** YAML and SQL files after editing
-- **Parse** the entire dbt project to catch structure errors
-- **Compile** models to find SQL issues
-- **Generate documentation** from your YAML definitions
-- **List** models and macros to understand the project structure
+| Command | What it does | Warehouse? |
+|---|---|---|
+| `node .claude/skills/develop-dbt/driver.mjs parse` | Validate **all** YAML, Jinja, and `ref()`/`source()` links across the project. **Run this after every edit.** | No |
+| `… validate <file>` | `.yml`: precise YAML syntax check, then parse. `.sql`: parse (catches Jinja errors). | No |
+| `… compile [model]` | Render Jinja → SQL into `target/compiled/`. Pass a model name to inspect one model's compiled SQL. | Yes |
+| `… list` | List this project's **own** models/macros/seeds/tests (not the hundreds from installed packages). | No |
+| `… help` | Command reference. | — |
 
-## Quick Start
+## Validation loop
 
-Before making changes:
-```bash
-node .claude/skills/develop-dbt/driver.mjs parse
-```
+After editing any `.sql` or `.yml` file:
 
-After editing a file:
-```bash
-node .claude/skills/develop-dbt/driver.mjs validate <file_path>
-```
+1. Run **`parse`**. It is fast, needs no warehouse, and catches the common failures: YAML syntax errors, Jinja errors (`{% if %}` without `{% endif %}`, unbalanced `{{ }}`), and unresolved `ref()`/`source()`.
+2. Fix whatever it reports (the dbt error names the file and line), then re-run until clean.
+3. Optionally `compile <model>` to confirm the Jinja renders to the SQL you expect.
 
-After significant changes:
-```bash
-node .claude/skills/develop-dbt/driver.mjs compile
-```
+Prefer `parse` to the old per-file regex checks — `dbt parse` understands Jinja, so it won't (for example) wrongly flag a valid inline `{% set x = ... %}`.
 
-## Commands
+## How this project wants dbt artifacts written
 
-### validate `<file>`
+Follow these conventions (from CLAUDE.md) when creating or editing files:
 
-Validate a single dbt YAML or SQL file without running the full project. Checks for:
-- **YAML files**: Proper structure (models/sources/macros section present)
-- **SQL files**: Matching Jinja brackets and variables
+- **Models are views.** Don't override the materialization to table unless explicitly asked.
+- **Every model needs a `schema.yml` entry** in its own directory that lists **all** columns with `description`s, plus tests. Put tests (`unique`, `not_null`, `relationships`, `accepted_values`, `dbt_utils.*`) in `schema.yml`; only write SQL in `tests/` for genuinely bespoke checks.
+- **Reference, don't hardcode:** use `{{ ref('other_model') }}` and `{{ source('name', 'table') }}`. Define sources in `models/sources/<name>/schema.yml`.
+- **Repeated logic → a macro.** Add macros under `macros/` and document each in `macros/_macros_docs.yml`. Installed package macros are called as `{{ package.macro(...) }}` (dbt_utils, codegen, dbt_artifacts, dbt_bigquery_monitoring).
+- **YAML style:** `version: 2` at the top, 2-space indentation, no tabs.
 
-**Examples:**
-```bash
-node .claude/skills/develop-dbt/driver.mjs validate models/example/schema.yml
-node .claude/skills/develop-dbt/driver.mjs validate macros/cents_to_dollars.sql
-node .claude/skills/develop-dbt/driver.mjs validate models/learning_macros/my_model.sql
-```
+## Notes
 
-Use this after editing a file to catch errors before running full validation.
-
-### parse
-
-Parse the entire dbt project without compiling. This validates:
-- YAML structure in all `schema.yml` files
-- Model/macro/source definitions
-- Ref and source relationships
-- Project configuration
-
-**Usage:**
-```bash
-node .claude/skills/develop-dbt/driver.mjs parse
-```
-
-Run this before substantial changes or after adding new YAML definitions.
-
-### compile
-
-Compile all models to validate SQL syntax and Jinja templates. This:
-- Checks SQL syntax
-- Validates all Jinja2 template logic
-- Ensures model references (`ref()`, `source()`) are valid
-- Writes compiled SQL to `target/compiled/`
-
-**Usage:**
-```bash
-node .claude/skills/develop-dbt/driver.mjs compile
-```
-
-Run this after making SQL changes or adding complex Jinja logic.
-
-### docs
-
-Generate dbt documentation from YAML definitions and docstring comments:
-```bash
-node .claude/skills/develop-dbt/driver.mjs docs
-```
-
-This creates documentation in `target/compiled/index.html` but does not require database access.
-
-### models
-
-List all models in the project:
-```bash
-node .claude/skills/develop-dbt/driver.mjs models
-```
-
-Shows model names, paths, and basic metadata.
-
-### macros
-
-List all macros in the project:
-```bash
-node .claude/skills/develop-dbt/driver.mjs macros
-```
-
-Shows macro names and paths.
-
-### help
-
-Show command reference:
-```bash
-node .claude/skills/develop-dbt/driver.mjs help
-```
-
-## Development Workflow
-
-When **creating a new model** in `models/learning_macros/`:
-
-1. Create the SQL file
-2. Validate syntax:
-   ```bash
-   node .claude/skills/develop-dbt/driver.mjs validate models/learning_macros/my_new_model.sql
-   ```
-3. Add YAML docs to `models/learning_macros/schema.yml`
-4. Validate YAML:
-   ```bash
-   node .claude/skills/develop-dbt/driver.mjs validate models/learning_macros/schema.yml
-   ```
-5. Parse project to check references:
-   ```bash
-   node .claude/skills/develop-dbt/driver.mjs parse
-   ```
-6. Compile to validate SQL:
-   ```bash
-   node .claude/skills/develop-dbt/driver.mjs compile
-   ```
-
-When **editing an existing model**, run:
-```bash
-node .claude/skills/develop-dbt/driver.mjs validate <file>  # Quick syntax check
-node .claude/skills/develop-dbt/driver.mjs compile           # Full validation
-```
-
-When **adding a macro**, update `macros/_macros_docs.yml` with documentation and run:
-```bash
-node .claude/skills/develop-dbt/driver.mjs validate macros/_macros_docs.yml
-```
-
-## Key Points
-
-- **No database required**: All commands run locally without BigQuery or other warehouse connections
-- **Fast feedback**: `validate` is the quickest way to catch errors in individual files
-- **Parse before compile**: `parse` is faster than `compile` and catches most structural issues
-- **YAML formatting**: Ensure 2-space indentation in all `.yml` files
-- **Jinja syntax**: Balance all `{% if %}...{% endif %}` and `{{ ... }}` pairs
-
-## Gotchas
-
-- **dbt-env activation**: The driver automatically activates the `dbt-env/` virtual environment. If it's not present, the driver will fail.
-- **Relative paths**: File paths in commands should be relative to the project root, not the skill directory
-- **YAML indentation**: dbt is sensitive to indentation. Use exactly 2 spaces, no tabs.
-- **schema.yml must exist**: Every model directory should have a `schema.yml` file. If missing, add one with at least:
-  ```yaml
-  version: 2
-  models: []
-  ```
-
-## Troubleshooting
-
-**Error: "dbt: command not found"**
-- The `dbt-env/` directory may be missing or the virtual environment is corrupt.
-- Recreate it: See the main CLAUDE.md for environment setup.
-
-**Error: "Mismatched Jinja blocks"**
-- Count opening `{% if %}`, `{% for %}`, `{% macro %}` tags.
-- Ensure each has a corresponding closing tag: `{% endif %}`, `{% endfor %}`, `{% endmacro %}`.
-
-**Error: "YAML validation failed"**
-- Check indentation (2 spaces, no tabs).
-- Ensure `schema.yml` files have a top-level `version: 2` and either `models:`, `sources:`, or `macros:` section.
-
-**models/compile fails with "Model X references undefined source"**
-- Check that all `source()` calls match sources defined in a `sources/` subdirectory's `schema.yml`.
-- Verify spelling and case sensitivity.
-
-**"File not found" error**
-- Provide paths relative to the project root, e.g., `models/example/my_model.sql`, not `/absolute/path/`.
+- Run commands from inside the project; the driver locates `dbt_project.yml` by walking up. File paths resolve against the project root (absolute paths also work).
+- Only `compile` opens a BigQuery connection. `parse`, `validate`, and `list` never touch the warehouse.
+- To build documentation, run `dbt docs generate` directly — it requires a warehouse connection and is intentionally out of scope here.
