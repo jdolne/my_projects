@@ -8,10 +8,7 @@ packages:
   - name: codegen
     package: dbt-labs/codegen
     version: 0.14.1
-  - name: snowflake_spend
-    package: gitlabhq/snowflake_spend
-    version: 1.4.0
   - name: dbt_bigquery_monitoring
     package: bqbooster/dbt_bigquery_monitoring
     version: 0.26.0
-sha1_hash: 8746e167a85e3ca70400e55d0eba51c70deec707
+sha1_hash: c51af3c3d23c929f32e8a3a4a48355f0ee40ca23

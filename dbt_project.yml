@@ -44,3 +44,5 @@ models:
       +materialized: table
     dbt_bigquery_monitoring:
       +schema: "dbt_bigquery_monitoring"
+    learning_macros:
+      +materialized: table
