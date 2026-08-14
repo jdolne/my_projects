@@ -2,12 +2,12 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'dbt_jdolne_project'
-version: '1.0.0'
+name: 'dolne_creations'
+# version: '1.0.0' #This is deprecated and I don't think it will be helpful to use
 config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'default'
+profile: 'dolne_creations_bigquery'
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -19,13 +19,7 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 dbt-cloud:
-    project-id: 70471823582874
-
-target-path: "target"  # directory which will store compiled SQL files
-clean-targets:         # directories to be removed by `dbt clean`
-  - "target"
-  - "dbt_packages"
-
+    project-id: 70471823586463
 
 # Configuring models
 # Full documentation: https://docs.getdbt.com/docs/configuring-models
@@ -38,11 +32,10 @@ clean-targets:         # directories to be removed by `dbt clean`
 # using the `{{ config(...) }}` macro.
 
 models:
-  dbt_jdolne_project:
-    # Applies to all files under models/example/
-    example:
-      +materialized: table
-    dbt_bigquery_monitoring:
-      +schema: "dbt_bigquery_monitoring"
-    learning_macros:
-      +materialized: table
+  # Applies to all files under models/example/
+  example:
+    +materialized: table
+  dbt_bigquery_monitoring:
+    +schema: "dbt_bigquery_monitoring"
+  learning_macros:
+    +materialized: table
