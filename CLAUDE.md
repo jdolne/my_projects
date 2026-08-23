@@ -23,6 +23,12 @@ including models, macros, packages, and custom transformations.
 
 ## Project Structure
 
+The dbt project lives in **`dbt/`** at the repo root. Everything dbt needs to
+run is inside it; the repo root holds only tooling (`.claude/`, `.github/`,
+`.vscode/`) and top-level docs (`CLAUDE.md`, `README.md`). **All paths below are
+relative to `dbt/`**, and dbt commands must be run from `dbt/` (or via the
+develop-dbt driver, which finds the project itself).
+
 - **models/** - dbt models organized by area:
   - `example/` - Basic dbt model examples (materialized as tables)
   - `learning_macros/` - Models that demonstrate custom macros
@@ -44,17 +50,28 @@ including models, macros, packages, and custom transformations.
 - **dbt_project.yml** - Paths, profiles, and model materializations
 - **packages.yml** - External package dependencies
 - **profiles.yml** (not in repo) - Connection config, expected in `~/.dbt/`
-- **.vscode/settings.json** - Points to the `dbt-env` Python environment
+- **.vscode/settings.json** (at repo root) - Points to the `dbt/dbt-env` Python
+  environment and declares `dbt` as the dbt project path
 
 ## Environment Setup
 
-The project uses a Python virtual environment (`dbt-env/`) with dbt installed.
-The VSCode settings use:
+The project uses a Python virtual environment (`dbt/dbt-env/`) with dbt
+installed. The VSCode settings use:
 ```
-/Users/Dolne_Creations/Desktop/Personal_Projects_Master/dolne_creations/dbt-env/bin/python3
+/Users/Dolne_Creations/Desktop/Personal_Projects_Master/dolne_creations/dbt/dbt-env/bin/python3
 ```
 If dbt commands fail, ensure the virtual environment is activated or use the
-full path to the dbt binary. Run all dbt commands from the `dbt-env/` virtualenv.
+full path to the dbt binary. Run all dbt commands from `dbt/` using the
+`dbt/dbt-env/` virtualenv:
+```bash
+cd dbt && dbt-env/bin/dbt <command>
+```
+To rebuild the virtualenv from scratch (it is Python 3.12.13):
+```bash
+cd dbt && dbt-env/bin/python3 -m pip freeze > /tmp/reqs.txt
+rm -rf dbt/dbt-env && /usr/local/bin/python3.12 -m venv dbt/dbt-env
+dbt/dbt-env/bin/python3 -m pip install -r /tmp/reqs.txt
+```
 
 ## SQL Style
 
@@ -97,7 +114,8 @@ local validation workflow (`parse`, `validate`, `compile`, `list`) that runs
   (at minimum `not_null`/`unique` on the key, plus `relationships` on FKs to
   dimensions where applicable).
 
-Commands that run against the warehouse (not covered by the skill):
+Commands that run against the warehouse (not covered by the skill). Run these
+from `dbt/`, using the `dbt-env/bin/dbt` binary there:
 ```bash
 dbt run                          # Build all models
 dbt run --select model_name      # Build a specific model
