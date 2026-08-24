@@ -40,8 +40,8 @@ models:
   dolne_creations:
     # Applies to all files under models/example/
     example:
-      +materialized: table
+      +materialized: view
     learning_macros:
-      +materialized: table
+      +materialized: view
   dbt_bigquery_monitoring:
     +schema: "dbt_bigquery_monitoring"
